@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>Cisco Secure Workload — GCP Connector Guide</title>
+  <style>
+
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+
+ul.task-list[class]{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+font-size: inherit;
+width: 0.8em;
+margin: 0 0.8em 0.2em -1.6em;
+vertical-align: middle;
+}
+.display.math{display: block; text-align: center; margin: 0.5rem auto;}
+
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+{ counter-reset: source-line 0; }
+pre.numberSource code > span
+{ position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+{ content: counter(source-line);
+position: relative; left: -1em; text-align: right; vertical-align: baseline;
+border: none; display: inline-block;
+-webkit-touch-callout: none; -webkit-user-select: none;
+-khtml-user-select: none; -moz-user-select: none;
+-ms-user-select: none; user-select: none;
+padding: 0 4px; width: 4em;
+color: #aaaaaa;
+}
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa; padding-left: 4px; }
+div.sourceCode
+{ }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } 
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.at { color: #7d9029; } 
+code span.bn { color: #40a070; } 
+code span.bu { color: #008000; } 
+code span.cf { color: #007020; font-weight: bold; } 
+code span.ch { color: #4070a0; } 
+code span.cn { color: #880000; } 
+code span.co { color: #60a0b0; font-style: italic; } 
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.do { color: #ba2121; font-style: italic; } 
+code span.dt { color: #902000; } 
+code span.dv { color: #40a070; } 
+code span.er { color: #ff0000; font-weight: bold; } 
+code span.ex { } 
+code span.fl { color: #40a070; } 
+code span.fu { color: #06287e; } 
+code span.im { color: #008000; font-weight: bold; } 
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.kw { color: #007020; font-weight: bold; } 
+code span.op { color: #666666; } 
+code span.ot { color: #007020; } 
+code span.pp { color: #bc7a00; } 
+code span.sc { color: #4070a0; } 
+code span.ss { color: #bb6688; } 
+code span.st { color: #4070a0; } 
+code span.va { color: #19177c; } 
+code span.vs { color: #4070a0; } 
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } 
+</style>
+  <style type="text/css">body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;max-width:900px;margin:2rem auto;padding:0 1.5rem;color:#1a1a2e;line-height:1.65}h1{font-size:1.8rem;border-bottom:2px solid #005073;padding-bottom:.5rem}h2{font-size:1.3rem;margin-top:2rem;color:#005073}h3{font-size:1.1rem;color:#333}code{background:#f4f4f4;padding:.15em .4em;border-radius:3px;font-size:.9em}pre{background:#f4f4f4;padding:1rem;border-radius:4px;overflow-x:auto}table{border-collapse:collapse;width:100%;margin:1rem 0;font-size:.92em}th{background:#005073;color:#fff;padding:.5rem .75rem;text-align:left}td{padding:.45rem .75rem;border-bottom:1px solid #e2e2e2}tr:nth-child(even) td{background:#f9f9f9}blockquote{border-left:4px solid #005073;margin:0;padding:.5rem 1rem;background:#f0f7fb;color:#444}a{color:#0066cc}
+</style>
+</head>
+<body>
+<h1 id="cisco-secure-workload-gcp-connector-guide">Cisco Secure Workload
+— GCP Connector Guide</h1>
+<blockquote>
+<p><strong>Disclaimer:</strong> Community reference guide by Cisco
+Solutions Engineering. Always consult <a href="https://www.cisco.com/c/en/us/products/security/tetration/index.html">official
+Cisco Secure Workload documentation</a> for authoritative guidance.</p>
+</blockquote>
+<h2 id="table-of-contents">Table of Contents</h2>
+<ol type="1">
+<li><a href="#1-overview">Overview</a></li>
+<li><a href="#2-architecture">Architecture</a></li>
+<li><a href="#3-capabilities">Capabilities</a></li>
+<li><a href="#4-prerequisites">Prerequisites</a></li>
+<li><a href="#5-step-a--gcp-service-account--iam-setup">Step A — GCP
+Service Account &amp; IAM Setup</a></li>
+<li><a href="#6-step-b--configure-the-gcp-connector-in-csw">Step B —
+Configure the GCP Connector in CSW</a></li>
+<li><a href="#7-step-c--vpc-and-capability-configuration">Step C — VPC
+and Capability Configuration</a></li>
+<li><a href="#8-gke-integration">GKE Integration</a></li>
+<li><a href="#9-multi-project-access">Multi-Project Access</a></li>
+<li><a href="#10-verification">Verification</a></li>
+<li><a href="#11-limits">Limits</a></li>
+<li><a href="#12-troubleshooting">Troubleshooting</a></li>
+<li><a href="#13-related-resources">Related Resources</a></li>
+</ol>
+<hr />
+<h2 id="overview">1. Overview</h2>
+<p>The <strong>GCP connector</strong> in Cisco Secure Workload
+automatically ingests workload inventory and labels from <strong>GCP
+VPCs</strong>, streams <strong>VPC flow logs</strong>, and enforces
+segmentation using <strong>GCP native VPC firewall rules</strong> — all
+without deploying CSW agents on every GCE instance.</p>
+<h3 id="what-the-gcp-connector-provides">What the GCP connector
+provides</h3>
+<table>
+<colgroup>
+<col style="width: 48%" />
+<col style="width: 52%" />
+</colgroup>
+<thead>
+<tr>
+<th>Capability</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Label ingestion</strong></td>
+<td>GCE instance labels/metadata → CSW workload labels</td>
+</tr>
+<tr>
+<td><strong>Flow log ingestion</strong></td>
+<td>VPC flow logs from Cloud Storage → CSW for ADM</td>
+</tr>
+<tr>
+<td><strong>Segmentation</strong></td>
+<td>CSW policies → GCP VPC firewall rules (auto-programmed)</td>
+</tr>
+<tr>
+<td><strong>GKE integration</strong></td>
+<td>K8s node/pod/service metadata from GKE clusters</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p><strong>No virtual appliance required.</strong></p>
+</blockquote>
+<hr />
+<h2 id="architecture">2. Architecture</h2>
+<pre><code>┌──────────────────────────────────────────────────────────────────────┐
+│                       GCP Project                                     │
+│                                                                       │
+│  ┌──────────────────────────────────────────────────────────────┐   │
+│  │  VPC Network                                                  │   │
+│  │                                                               │   │
+│  │  GCE instances with labels:                                   │   │
+│  │    env=production, tier=app, team=finance                     │   │
+│  │                                                               │   │
+│  │  VPC Flow Logs ──► Log Router Sink ──► Cloud Storage Bucket   │   │
+│  │                                                               │   │
+│  │  VPC Firewall Rules ◄── CSW programs policies                  │   │
+│  └──────────────────────────────────────────────────────────────┘   │
+│                  ▲ Compute API (labels/inventory)                     │
+│                  │ Storage API (flow logs)                            │
+│                  │ Compute API (firewall rules)                       │
+│  GCP Service Account with IAM roles (provisioned via CLI)             │
+└──────────────────────────────────────────────────────────────────────┘
+                   ▲
+                   │ GCP REST API
+                   │
+┌──────────────────┴───────────────────────────────────────────────────┐
+│  Cisco Secure Workload (SaaS or On-Prem)                              │
+│  GCP Connector (no virtual appliance needed)                          │
+└──────────────────────────────────────────────────────────────────────┘</code></pre>
+<hr />
+<h2 id="capabilities">3. Capabilities</h2>
+<h3 id="label-ingestion">Label Ingestion</h3>
+<ul>
+<li>GCE instance labels + metadata → CSW workload labels</li>
+<li>Synced continuously as GCP labels change</li>
+</ul>
+<h3 id="vpc-flow-log-ingestion">VPC Flow Log Ingestion</h3>
+<ul>
+<li>Requires VPC flow logs enabled on VPC subnets and a <strong>Log
+Router sink</strong> to a <strong>Cloud Storage bucket</strong></li>
+<li>CSW reads the storage bucket (not Cloud Operations Suite /
+Stackdriver)</li>
+<li>Required fields: source/destination IP, ports, protocol, bytes,
+packets, start/end time, action, TCP flags, interface ID, flow
+direction</li>
+</ul>
+<h3 id="segmentation">Segmentation</h3>
+<ul>
+<li>CSW policies → GCP VPC firewall rules</li>
+<li><strong>Warning:</strong> Existing VPC firewall rules are
+overwritten. Back up before enabling.</li>
+</ul>
+<h3 id="gke-integration">GKE Integration</h3>
+<ul>
+<li>Node, pod, and service metadata from GKE clusters</li>
+</ul>
+<hr />
+<h2 id="prerequisites">4. Prerequisites</h2>
+<h3 id="gcp-requirements">GCP requirements</h3>
+<ul class="task-list">
+<li><p><label><input type="checkbox"></input>GCP <strong>service
+account</strong> created (dedicated to CSW connector)</label></p></li>
+<li><p><label><input type="checkbox"></input>IAM policy list applied to grant
+required permissions (generated by CSW connector
+wizard)</label></p></li>
+<li><p><label><input type="checkbox"></input>For flow logs: VPC flow logs
+enabled on subnets + Log Router sink → Cloud Storage bucket
+configured</label></p></li>
+<li><p><label><input type="checkbox"></input>Inclusion filter for Log Router
+sink:</label></p>
+<pre><code>resource.type=&quot;gce-subnetwork&quot;
+log_name=&quot;projects/&lt;PROJECT_ID&gt;/logs/compute.googleapis.com%2Fvpc_flows&quot;</code></pre></li>
+<li><p><label><input type="checkbox"></input>GCS bucket accessible by the
+service account</label></p></li>
+<li><p><label><input type="checkbox"></input>For segmentation: Existing VPC
+firewall rules backed up</label></p></li>
+</ul>
+<h3 id="csw-requirements">CSW requirements</h3>
+<ul class="task-list">
+<li><label><input type="checkbox"></input>CSW cluster administrator
+access</label></li>
+<li><label><input type="checkbox"></input>Each VPC belongs to exactly
+<strong>one</strong> GCP connector</label></li>
+</ul>
+<hr />
+<h2 id="step-a-gcp-service-account-iam-setup">5. Step A — GCP Service
+Account &amp; IAM Setup</h2>
+<h3 id="a1-create-a-dedicated-service-account">A1 — Create a dedicated
+service account</h3>
+<div class="sourceCode" id="cb3"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">gcloud</span> iam service-accounts create csw-connector-sa <span class="dt">\</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">--display-name</span><span class="op">=</span><span class="st">&quot;CSW Connector Service Account&quot;</span> <span class="dt">\</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">--project</span><span class="op">=</span>YOUR_PROJECT_ID</span></code></pre></div>
+<p>Note the service account email:
+<code>csw-connector-sa@YOUR_PROJECT_ID.iam.gserviceaccount.com</code></p>
+<h3 id="a2-generate-and-download-the-iam-policy-list-from-csw">A2 —
+Generate and download the IAM policy list from CSW</h3>
+<ol type="1">
+<li>Start the connector wizard in CSW (see Step B)</li>
+<li>Select desired capabilities</li>
+<li>Download the <strong>IAM Policy List</strong> from the wizard</li>
+</ol>
+<h3 id="a3-apply-iam-permissions-via-cli-recommended">A3 — Apply IAM
+permissions via CLI (recommended)</h3>
+<div class="sourceCode" id="cb4"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Apply each role from the generated IAM policy list:</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="ex">gcloud</span> projects add-iam-policy-binding YOUR_PROJECT_ID <span class="dt">\</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">--member</span><span class="op">=</span><span class="st">&quot;serviceAccount:csw-connector-sa@YOUR_PROJECT_ID.iam.gserviceaccount.com&quot;</span> <span class="dt">\</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">--role</span><span class="op">=</span><span class="st">&quot;roles/compute.viewer&quot;</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a><span class="ex">gcloud</span> projects add-iam-policy-binding YOUR_PROJECT_ID <span class="dt">\</span></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">--member</span><span class="op">=</span><span class="st">&quot;serviceAccount:csw-connector-sa@YOUR_PROJECT_ID.iam.gserviceaccount.com&quot;</span> <span class="dt">\</span></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">--role</span><span class="op">=</span><span class="st">&quot;roles/storage.objectViewer&quot;</span></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a><span class="co"># (Additional roles per the generated policy list, based on enabled capabilities)</span></span></code></pre></div>
+<h3 id="a4-create-and-download-service-account-key">A4 — Create and
+download service account key</h3>
+<div class="sourceCode" id="cb5"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">gcloud</span> iam service-accounts keys create csw-connector-key.json <span class="dt">\</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">--iam-account</span><span class="op">=</span>csw-connector-sa@YOUR_PROJECT_ID.iam.gserviceaccount.com</span></code></pre></div>
+<p>This JSON key file is used in the CSW connector configuration.</p>
+<hr />
+<h2 id="step-b-configure-the-gcp-connector-in-csw">6. Step B — Configure
+the GCP Connector in CSW</h2>
+<h3 id="b1-navigate-to-connector-configuration">B1 — Navigate to
+connector configuration</h3>
+<p>CSW UI: <strong>Manage &gt; Connectors &gt; Cloud &gt; + Add
+Connector &gt; GCP</strong></p>
+<h3 id="b2-enter-gcp-credentials">B2 — Enter GCP credentials</h3>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>Field</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Service Account Key (JSON)</strong></td>
+<td>Paste contents of <code>csw-connector-key.json</code></td>
+</tr>
+<tr>
+<td><strong>Project ID</strong></td>
+<td>Your GCP project ID</td>
+</tr>
+</tbody>
+</table>
+<h3 id="b3-vpc-discovery">B3 — VPC discovery</h3>
+<p>CSW discovers all VPCs in the project after credentials are
+entered.</p>
+<hr />
+<h2 id="step-c-vpc-and-capability-configuration">7. Step C — VPC and
+Capability Configuration</h2>
+<h3 id="labels-inventory">Labels / Inventory</h3>
+<p>Select GCE instance labels to ingest as CSW workload labels:</p>
+<pre><code>GCP label: env=production
+CSW label: env = production</code></pre>
+<h3 id="flow-log-ingestion">Flow Log Ingestion</h3>
+<p>Set up the Log Router sink before enabling in CSW:</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Create a Cloud Storage bucket for flow logs</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="ex">gcloud</span> storage buckets create gs://csw-vpc-flow-logs-YOURPROJECT <span class="dt">\</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">--location</span><span class="op">=</span>us-central1</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Create a Log Router sink</span></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a><span class="ex">gcloud</span> logging sinks create csw-flow-log-sink <span class="dt">\</span></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>  storage.googleapis.com/csw-vpc-flow-logs-YOURPROJECT <span class="dt">\</span></span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">--log-filter</span><span class="op">=</span><span class="st">&#39;resource.type=&quot;gce-subnetwork&quot; log_name=&quot;projects/YOURPROJECT/logs/compute.googleapis.com%2Fvpc_flows&quot;&#39;</span></span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Grant the sink&#39;s service account write access to the bucket</span></span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a><span class="va">SINK_SA</span><span class="op">=</span><span class="va">$(</span><span class="ex">gcloud</span> logging sinks describe csw-flow-log-sink <span class="at">--format</span><span class="op">=</span><span class="st">&#39;value(writerIdentity)&#39;</span><span class="va">)</span></span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a><span class="ex">gcloud</span> storage buckets add-iam-policy-binding gs://csw-vpc-flow-logs-YOURPROJECT <span class="dt">\</span></span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>  <span class="at">--member</span><span class="op">=</span><span class="st">&quot;</span><span class="va">$SINK_SA</span><span class="st">&quot;</span> <span class="dt">\</span></span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>  <span class="at">--role</span><span class="op">=</span><span class="st">&quot;roles/storage.objectCreator&quot;</span></span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a><span class="co"># Enable VPC flow logs on a subnet</span></span>
+<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a><span class="ex">gcloud</span> compute networks subnets update YOUR_SUBNET <span class="dt">\</span></span>
+<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a>  <span class="at">--region</span><span class="op">=</span>us-central1 <span class="dt">\</span></span>
+<span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a>  <span class="at">--enable-flow-logs</span> <span class="dt">\</span></span>
+<span id="cb7-20"><a href="#cb7-20" aria-hidden="true" tabindex="-1"></a>  <span class="at">--logging-filter-expr</span><span class="op">=</span><span class="st">&quot;ingressDirection OR egressDirection&quot;</span> <span class="dt">\</span></span>
+<span id="cb7-21"><a href="#cb7-21" aria-hidden="true" tabindex="-1"></a>  <span class="at">--logging-aggregation-interval</span><span class="op">=</span>interval-5-sec <span class="dt">\</span></span>
+<span id="cb7-22"><a href="#cb7-22" aria-hidden="true" tabindex="-1"></a>  <span class="at">--logging-flow-sampling</span><span class="op">=</span>0.5</span></code></pre></div>
+<p>In CSW connector, provide the <strong>Cloud Storage bucket
+name</strong>.</p>
+<h3 id="segmentation-1">Segmentation</h3>
+<p>Enable after Labels is configured. CSW programs GCP VPC firewall
+rules.</p>
+<p>Back up existing firewall rules first:</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="ex">gcloud</span> compute firewall-rules list <span class="at">--format</span><span class="op">=</span>json <span class="op">&gt;</span> gcp-firewall-backup.json</span></code></pre></div>
+<hr />
+<h2 id="gke-integration-1">8. GKE Integration</h2>
+<p>Enable Kubernetes integration for GKE clusters:</p>
+<ol type="1">
+<li>Check <strong>Enable Kubernetes / GKE</strong> in the VPC
+configuration</li>
+<li>CSW collects node, pod, and service metadata</li>
+<li>Pod metadata appears in CSW inventory with K8s labels</li>
+</ol>
+<p>IAM permissions for GKE (add to service account):</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="ex">gcloud</span> projects add-iam-policy-binding YOUR_PROJECT_ID <span class="dt">\</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">--member</span><span class="op">=</span><span class="st">&quot;serviceAccount:csw-connector-sa@YOUR_PROJECT_ID.iam.gserviceaccount.com&quot;</span> <span class="dt">\</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">--role</span><span class="op">=</span><span class="st">&quot;roles/container.viewer&quot;</span></span></code></pre></div>
+<hr />
+<h2 id="multi-project-access">9. Multi-Project Access</h2>
+<p>To monitor VPCs across multiple GCP projects:</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="co"># For each additional project, grant the CSW service account access:</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="ex">gcloud</span> projects add-iam-policy-binding ADDITIONAL_PROJECT_ID <span class="dt">\</span></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">--member</span><span class="op">=</span><span class="st">&quot;serviceAccount:csw-connector-sa@PRIMARY_PROJECT_ID.iam.gserviceaccount.com&quot;</span> <span class="dt">\</span></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">--role</span><span class="op">=</span><span class="st">&quot;roles/compute.viewer&quot;</span></span></code></pre></div>
+<p>In CSW, add the additional Project IDs to the connector
+configuration.</p>
+<hr />
+<h2 id="verification">10. Verification</h2>
+<h3 id="check-connector-status">Check connector status</h3>
+<p><strong>Manage &gt; Connectors &gt; Cloud &gt; [GCP
+Connector]</strong> Status: <strong>Active</strong></p>
+<h3 id="check-inventory">Check inventory</h3>
+<p><strong>Inventory &gt; Workloads</strong> → search by GCE instance
+internal IP → confirm GCP labels are present</p>
+<h3 id="verify-flow-logs">Verify flow logs</h3>
+<p><strong>Observe &gt; Traffic</strong> → filter by VPC subnet CIDR →
+confirm flows visible</p>
+<hr />
+<h2 id="limits">11. Limits</h2>
+<table>
+<colgroup>
+<col style="width: 53%" />
+<col style="width: 46%" />
+</colgroup>
+<thead>
+<tr>
+<th>Metric</th>
+<th>Limit</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>VPCs per GCP connector</td>
+<td>Multiple</td>
+</tr>
+<tr>
+<td>Projects per connector</td>
+<td>Multiple (with cross-project IAM)</td>
+</tr>
+<tr>
+<td>VPCs per cluster</td>
+<td>One connector per VPC</td>
+</tr>
+<tr>
+<td>Flow log destination</td>
+<td>Cloud Storage only (not Cloud Operations Suite)</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="troubleshooting">12. Troubleshooting</h2>
+<table>
+<colgroup>
+<col style="width: 56%" />
+<col style="width: 43%" />
+</colgroup>
+<thead>
+<tr>
+<th>Symptom</th>
+<th>Check</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Auth failure</td>
+<td>Verify service account key JSON is valid and not expired; check IAM
+roles applied</td>
+</tr>
+<tr>
+<td>No VPCs discovered</td>
+<td>Confirm <code>roles/compute.viewer</code> applied to service
+account; verify project ID correct</td>
+</tr>
+<tr>
+<td>Flow logs missing</td>
+<td>Confirm VPC flow logs enabled on subnets; Log Router sink → GCS
+configured with correct filter; GCS accessible by service account</td>
+</tr>
+<tr>
+<td>Segmentation not enforcing</td>
+<td>Confirm Labels enabled; verify
+<code>roles/compute.securityAdmin</code> or equivalent in IAM</td>
+</tr>
+<tr>
+<td>GKE metadata missing</td>
+<td>Add <code>roles/container.viewer</code> to service account</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="related-resources">13. Related Resources</h2>
+<table>
+<colgroup>
+<col style="width: 35%" />
+<col style="width: 38%" />
+<col style="width: 26%" />
+</colgroup>
+<thead>
+<tr>
+<th>Repository</th>
+<th>Description</th>
+<th>Best for</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="https://github.com/chandrapati/csw-aws-connector">csw-aws-connector</a></td>
+<td>AWS VPC label ingestion, Security Group enforcement</td>
+<td>AWS workloads</td>
+</tr>
+<tr>
+<td><a href="https://github.com/chandrapati/csw-azure-connector">csw-azure-connector</a></td>
+<td>Azure VNet label ingestion, NSG enforcement</td>
+<td>Azure workloads</td>
+</tr>
+<tr>
+<td><a href="https://github.com/chandrapati/CSW-Agent-Installation-Guide">CSW-Agent-Installation-Guide</a></td>
+<td>Deploy CSW agents inside GCE VMs</td>
+<td>Agent-based visibility</td>
+</tr>
+<tr>
+<td><a href="https://github.com/chandrapati/CSW-Policy-Lifecycle">CSW-Policy-Lifecycle</a></td>
+<td>Policy discovery → enforcement workflow</td>
+<td>Policy management</td>
+</tr>
+<tr>
+<td><a href="https://github.com/chandrapati/CSW-Operations-Toolkit">CSW-Operations-Toolkit</a></td>
+<td>Day-2 ops scripts</td>
+<td>Ongoing operations</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<p><em>Community reference — Cisco Solutions Engineering. Not an
+official Cisco product document.</em></p>
+</body>
+</html>
