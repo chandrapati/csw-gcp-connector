@@ -1,6 +1,6 @@
 # Cisco Secure Workload — GCP Connector Guide
 
-> **Disclaimer:** Community reference guide by Cisco Solutions Engineering. Always consult [official Cisco Secure Workload documentation](https://www.cisco.com/c/en/us/products/security/tetration/index.html) for authoritative guidance.
+> **Disclaimer:** Community reference guide by Cisco Solutions Engineering. Always consult the [official Cisco Secure Workload documentation](https://www.cisco.com/c/en/us/products/security/secure-workload/index.html) — specifically [Configure and Manage Connectors → GCP Connector](https://www.cisco.com/c/en/us/td/docs/security/workload_security/secure_workload/user-guide/4_0/cisco-secure-workload-user-guide-on-prem-v40/configure-and-manage-connectors-for-secure-workload.html) — for authoritative guidance.
 
 ## Table of Contents
 1. [Overview](#1-overview)
@@ -32,7 +32,7 @@ The **GCP connector** in Cisco Secure Workload automatically ingests workload in
 | **Segmentation** | CSW policies → GCP VPC firewall rules (auto-programmed) |
 | **GKE integration** | K8s node/pod/service metadata from GKE clusters |
 
-> **No virtual appliance required.**
+> **No virtual appliance required.** Unlike the NetFlow / ERSPAN / ISE connectors, the GCP cloud connector does **not** run on a Secure Workload Ingest or Edge virtual appliance — Secure Workload connects to the GCP APIs directly.
 
 ---
 
@@ -75,13 +75,15 @@ The **GCP connector** in Cisco Secure Workload automatically ingests workload in
 - Synced continuously as GCP labels change
 
 ### VPC Flow Log Ingestion
-- Requires VPC flow logs enabled on VPC subnets and a **Log Router sink** to a **Cloud Storage bucket**
-- CSW reads the storage bucket (not Cloud Operations Suite / Stackdriver)
-- Required fields: source/destination IP, ports, protocol, bytes, packets, start/end time, action, TCP flags, interface ID, flow direction
+- Requires **VPC-level** flow logs enabled on subnets and a **Log Router sink** to a **Cloud Storage bucket** (the bucket name is mandatory in the connector config)
+- CSW reads the storage bucket — it **cannot** collect flow data from Google Cloud Operations Suite (Stackdriver)
+- Flow logs must capture **both Allowed and Denied** traffic
+- Required fields (any others ignored): Source Address, Destination Address, Source Port, Destination Port, Protocol, Packets, Bytes, Start Time, End Time, Action, TCP Flags, Interface-ID, **Log status**, Flow Direction
 
 ### Segmentation
-- CSW policies → GCP VPC firewall rules
-- **Warning:** Existing VPC firewall rules are overwritten. Back up before enabling.
+- Requires Gather Labels to be enabled
+- CSW policies → GCP VPC firewall rules. GCP firewall supports both Allow and Deny rules, but **GCP enforces strict rule-count limits — prefer an Allow-list with a Catch-All Deny**
+- **Warning:** Enabling segmentation **overwrites existing VPC firewall rules**. CSW automatically backs them up first (see Step C); take your own backup as defense-in-depth
 
 ### GKE Integration
 - Node, pod, and service metadata from GKE clusters
@@ -156,7 +158,7 @@ This JSON key file is used in the CSW connector configuration.
 
 ### B1 — Navigate to connector configuration
 
-CSW UI: **Manage > Connectors > Cloud > + Add Connector > GCP**
+CSW UI: **Manage > Workloads > Connectors**, then choose the **GCP** cloud connector and start the wizard. **For a POV, enable Gather Labels + Ingest Flow Logs first and leave Segmentation off** until you are ready to enforce.
 
 ### B2 — Enter GCP credentials
 
@@ -212,10 +214,14 @@ gcloud compute networks subnets update YOUR_SUBNET \
 In CSW connector, provide the **Cloud Storage bucket name**.
 
 ### Segmentation
+> **Best practice (per Cisco): do _not_ enable Segmentation during initial configuration.** Gather labels and flows first, build/analyze policies in a workspace, enable enforcement on that workspace, then return to the connector to enable Segmentation for the VPC.
 
-Enable after Labels is configured. CSW programs GCP VPC firewall rules.
+When you enable segmentation:
+1. Confirm **Gather Labels** is enabled (required dependency)
+2. **Enable enforcement in the workspace _before_ enabling Segmentation for the VPC.** Otherwise **all traffic on that VPC is allowed**
+3. Set the workspace **Catch-All to Deny**; prefer an Allow-list because GCP enforces strict firewall rule-count limits
 
-Back up existing firewall rules first:
+**Automatic backup/restore:** when you enable Segmentation for a VPC, CSW automatically backs up that VPC's firewall rules; when you disable Segmentation, CSW restores the rules **it modified** to the most-recent backup state (unrelated rules untouched). Toggle via **Manage > Workloads > Connectors > GCP Connector > Resources > Resources Tree**. Still take your own backup first:
 ```bash
 gcloud compute firewall-rules list --format=json > gcp-firewall-backup.json
 ```
@@ -257,14 +263,16 @@ In CSW, add the additional Project IDs to the connector configuration.
 ## 10. Verification
 
 ### Check connector status
-**Manage > Connectors > Cloud > [GCP Connector]**
-Status: **Active**
+**Manage > Workloads > Connectors**, then select the GCP connector. Confirm a recent sync on the per-VPC rows.
 
 ### Check inventory
-**Inventory > Workloads** → search by GCE instance internal IP → confirm GCP labels are present
+On the GCP connector page, click a workload **IP address** to open its **Inventory Profile** → confirm GCP labels are present.
 
 ### Verify flow logs
-**Observe > Traffic** → filter by VPC subnet CIDR → confirm flows visible
+**Investigate > Traffic** (Flow Search) → filter by VPC subnet CIDR → confirm flows are visible.
+
+### Check enforcement (if segmentation enabled)
+**Defend > Enforcement Status** (see *Enforcement Status for Cloud Connectors*), then confirm the programmed rules in the GCP Console → VPC network → Firewall.
 
 ---
 
@@ -274,8 +282,10 @@ Status: **Active**
 |--------|-------|
 | VPCs per GCP connector | Multiple |
 | Projects per connector | Multiple (with cross-project IAM) |
-| VPCs per cluster | One connector per VPC |
-| Flow log destination | Cloud Storage only (not Cloud Operations Suite) |
+| Connectors per VPC | Exactly one — a VPC can belong to only one GCP connector |
+| Flow log scope | VPC-level flow logs only |
+| Flow log destination | Cloud Storage only — not Cloud Operations Suite (Stackdriver) |
+| Firewall rules | GCP enforces strict rule-count limits; prefer Allow-list + Catch-All Deny |
 
 ---
 
@@ -285,8 +295,10 @@ Status: **Active**
 |---------|-------|
 | Auth failure | Verify service account key JSON is valid and not expired; check IAM roles applied |
 | No VPCs discovered | Confirm `roles/compute.viewer` applied to service account; verify project ID correct |
-| Flow logs missing | Confirm VPC flow logs enabled on subnets; Log Router sink → GCS configured with correct filter; GCS accessible by service account |
-| Segmentation not enforcing | Confirm Labels enabled; verify `roles/compute.securityAdmin` or equivalent in IAM |
+| Flow logs missing | Confirm VPC flow logs enabled on subnets; Log Router sink → GCS configured with correct filter; GCS accessible by service account; flow logs capture both Allowed and Denied |
+| Segmentation not enforcing | Confirm Gather Labels enabled and the workspace is enforcing; verify `roles/compute.securityAdmin` or equivalent in IAM |
+| VPC unexpectedly allows all traffic | Segmentation was enabled on a VPC whose workspace is not enforcing, or the Catch-All policy is not set to **Deny** |
+| Concrete policy shows **SKIPPED** | Generated rule count exceeds GCP firewall limits — consolidate policies (e.g., larger subnets) |
 | GKE metadata missing | Add `roles/container.viewer` to service account |
 
 ---
